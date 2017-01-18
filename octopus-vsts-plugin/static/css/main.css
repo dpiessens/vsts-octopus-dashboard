@@ -1,0 +1,130 @@
+﻿body {
+    font-family: 'Segoe UI', sans-serif;
+}
+
+span {
+    font-style: italic;
+}
+
+.bgImage {
+            background-image: url('../images/unconfigured-small.png');
+            height: 40px;
+            width: 100%;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: contain;
+}
+
+.widget-notification.configure-widget .action-required-link {
+    overflow: hidden;
+    background-color: #f4f4f4;
+    white-space: nowrap;
+    word-wrap: normal;
+}
+
+.action-required-link {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 10px 14px;
+}
+
+.action-required-link .title-container {
+    color: #333;
+    font-size: 16px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-wrap: normal;
+    margin: 0;
+    font-weight: normal;
+}
+
+.action-required-link .content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    width: calc(100% - 14px*2);
+}
+
+.action-required-link .widget-message-text {
+    color: #666;
+    margin-bottom: 10px;
+    font-size: 16px;
+    white-space: normal;
+    text-align: center;
+}
+
+.action-required-link .link-text {
+    margin-top: 10px;
+    font-size: 14px;
+    font-family: 'Segoe UI',Tahoma,Helvetica,Sans-Serif;
+    background: transparent;
+    color: #009ccc;
+    text-align: center;
+    display: block;
+}
+
+.deployment-envs-container {
+    padding-top: 7px;
+}
+
+.deployment-envs-container .deployment-env-container {
+    height: 100px;
+    width: 125px;
+    float: left;
+    background: #F1F1F1;
+    border: 1px solid #FFFFFF;
+    margin-right: 9px;
+}
+
+.deployment-envs-container .deployment-env-container .env-container {
+    width: 100%;
+}
+
+.deployment-envs-container .deployment-env-container .failure {
+    background-color: #ac0000;
+}
+
+.deployment-envs-container .deployment-env-container .success {
+    background-color: #393;
+}
+
+.deployment-envs-container .deployment-env-container .env-container .env-name {
+    padding-top: 4px;
+    padding-bottom: 5px;
+    margin-left: 7px;
+    margin-right: 4px;
+    background-color: transparent;
+    color: #ffffff;
+}
+
+.deployment-envs-container .deployment-env-container .status-positioning {
+    margin-top: 15px;
+    margin-left: 6px;
+    margin-bottom: 16px;
+    float: left;
+}
+
+.deployment-envs-container .deployment-env-container .release-name {
+    margin-left: 4px;
+    margin-top: 15px;
+    width: 80%;
+    display: block;
+    color: black;
+    float: left;
+    font-size: 12px;
+}
+
+.deployment-envs-container .deployment-env-container .release-date {
+    display: block;
+    float: left;
+    color: rgba(37,51,38,.64);
+    width: 80%;
+    margin-top: 0;
+    margin-left: 4px;
+    font-size: 8pt;
+}

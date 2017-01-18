@@ -1,0 +1,60 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="css/main.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div id="widget-setup" class="configure-widget widget-notification">
+        <a class="action-required-link" href="#">
+            <h2 class="title-container truncated-text-ellipsis" title="Octopus Dashboard">Octopus Dashboard</h2>
+            <div class="content">
+                <div class="widget-message-text">Configure widget</div>
+                <div class="bgImage"></div>
+                <span class="link-text"></span>
+            </div>
+        </a>
+    </div>
+    <div id="widget-shell" class="widget">
+        <h2 id="title" class="title">Octopus Deploy Dashboard</h2>
+        <div class="content">
+            <a id="widget-link" href="#" target="_blank">
+                <div id="deploy-container" class="deployment-envs-container">
+                    <div id="deployment-1" class="deployment-env-container">
+                        <a id="deployment-link" href="#" target="_blank">
+                            <div id="environment-container" class="env-container failed">
+                                <div id="environment-name" class="env-name text-wrap"></div>
+                            </div>
+                            <div id="deploy-status" class="status-positioning bowtie-icon"></div>
+                            <div id="deploy-version" class="release-name truncated-text-ellipsis"></div>
+                            <div id="deploy-date" class="release-date"></div>
+                        </a>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <script src="lib/VSS.SDK.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+    <script src="moment.js"></script>
+    <script src="moment-timezone.js"></script>
+    <script src="underscore.js"></script>
+    <script src="axios.js"></script>
+
+    <script type="text/javascript">
+        VSS.init(
+            {
+                explicitNotifyLoaded: true,
+                setupModuleLoader: true,
+                usePlatformScripts: true,
+                usePlatformStyles: true
+            });
+        VSS.ready(function () {
+            require(["octopus-dashboard/main"], function (main) { });
+        });
+    </script>
+</body>
+
+</html>

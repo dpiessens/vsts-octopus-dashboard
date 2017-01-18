@@ -1,0 +1,18 @@
+{
+    "compilerOptions": {
+        "module": "amd",
+        "moduleResolution": "node",
+        "target": "es5",
+        "rootDir": "src/",
+        "outDir": "dist/",
+        "types": [
+            "vss-web-extension-sdk"
+        ]
+    },
+    "files": [
+        "src/octopus-dashboard/main.ts",
+        "src/octopus-dashboard/octopusWidget.ts",
+        "src/octopus-dashboard/settings.ts",
+        "src/octopus-dashboard/octopusWidgetConfiguration.ts"
+    ]
+}

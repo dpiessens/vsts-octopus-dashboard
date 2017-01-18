@@ -1,0 +1,57 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <link href="css/main.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="widget-configuration">
+        <div class="single-line-text-input" id="title-input">
+            <label>Title</label>
+            <input type="text" data-bind="value: nameObservable"></input>
+        </div>
+
+        <div class="dropdown">
+            <label>Octopus Endpoint</label>
+            <div class="wrapper">
+                <select id="connection-dropdown" data-bind="options: endpointsObservable, optionsText: 'name', value: selectedEndpoint">
+                    </select>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label>Octopus Project</label>
+            <div class="wrapper">
+                <select id="octo-proj-dropdown" data-bind="options: projectsObservable, optionsText: 'Name', value: selectedProject">
+                </select>
+            </div>
+        </div>
+
+        <div class="dropdown">
+            <label>Octopus Environment</label>
+            <div class="wrapper">
+                <select id="octo-environment-dropdown" data-bind="options: environmentsObservable, optionsText: 'Name', value: selectedEnvironment">
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <script src="lib/VSS.SDK.min.js"></script>
+    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
+
+    <script type="text/javascript">
+        VSS.init({
+            explicitNotifyLoaded: true,
+            setupModuleLoader: true,
+            usePlatformScripts: true,
+            usePlatformStyles: true
+        });
+
+        VSS.ready(function () {
+            require(["octopus-dashboard/octopusWidgetConfiguration"], function (configuration) { });
+        });
+    </script>
+</body>
+
+</html>

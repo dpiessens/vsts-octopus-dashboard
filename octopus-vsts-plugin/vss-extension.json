@@ -1,15 +1,16 @@
 {
   "manifestVersion": 1,
-  "id": "sample-extension",
-  "version": "0.1.0",
-  "name": "Sample Extension",
-  "scopes": [ "vso.work", "vso.work_write" ],
-  "description": "This is the extension file from the contributions guide example on GitHub.  Feel free to add or remove sections as you see fit.",
-  "baseUri": "https://localhost",
-  "publisher": "fabrikam",
+  "id": "octopus-dashboard-plugin",
+  "version": "0.1.123",
+  "name": "Octopus Dashboard Plugin",
+  "type": "Microsoft.VisualStudio.Services",
+  "scopes": [ "vso.profile", "vso.serviceendpoint_query" ],
+  "demands": ["api-version/3.0"],
+  "description": "Adds the ability to visualize your Octopus Deploy release pipelines on your dashboard.",
+  "publisher": "dpiessens",
   "public": false,
   "icons": {
-    "default": "img/logo.png"
+    "default": "static/images/logo.png"
   },
   "targets": [
     {
@@ -17,7 +18,10 @@
     }
   ],
   "tags": [
-    "Sample"
+    "deploy",
+    "release",
+    "octopus",
+    "dashboard"
   ],
   "links": {
     "home": {
@@ -45,20 +49,39 @@
   },
   "files": [
     {
-      "path": "css",
-      "addressable": true
+      "path": "dist",
+      "addressable": true,
+      "packagePath": "/"
     },
     {
-      "path": "img",
-      "addressable": true
+      "path": "static",
+      "addressable": true,
+      "packagePath": "/"
     },
     {
-      "path": "scripts",
-      "addressable": true
+        "path": "node_modules/vss-web-extension-sdk/lib",
+        "addressable": true,
+        "packagePath": "lib"
     },
     {
-      "path": "index.html",
-      "addressable": true
+        "path": "node_modules/moment/min/moment.min.js",
+        "addressable": true,
+        "packagePath": "moment.js"
+    },
+    {
+        "path": "node_modules/moment-timezone/builds/moment-timezone-with-data.min.js",
+        "addressable": true,
+        "packagePath": "moment-timezone.js"
+    },
+    {
+        "path": "node_modules/underscore/underscore-min.js",
+        "addressable": true,
+        "packagePath": "underscore.js"
+    },
+    {
+        "path": "node_modules/axios/dist/axios.min.js",
+        "addressable": true,
+        "packagePath": "axios.js"
     }
   ],
   "categories": [
@@ -66,15 +89,47 @@
   ],
   "contributions": [
     {
-      "id": "home",
+      "id": "OctopusDashboardWidget",
+      "type": "ms.vss-dashboards-web.widget",
       "targets": [
-        "ms.vss-work-web.work-hub-group"
+        "ms.vss-dashboards-web.widget-catalog",
+        ".OctopusDashboardWidget-Configuration"
       ],
-      "type": "ms.vss-web.hub",
       "properties": {
-        "name": "Sample Contribution",
-        "order": 100,
-        "uri": "index.html"
+        "name": "Octopus Dashboard Widget",
+        "description": "A widget that display the deployment status of a project and environment(s)",
+        "catalogIconUrl:": "images/logo.png",
+        "previewImageUrl": "images/logo.png",
+        "uri": "octopus-dashboard-widget.html",
+        "supportedSizes": [
+          {
+            "rowSpan": 1,
+            "columnSpan": 1
+          },
+          {
+            "rowSpan": 1,
+            "columnSpan": 2
+          },
+          {
+            "rowSpan": 1,
+            "columnSpan": 3
+          }
+        ],
+        "supportedScopes": [
+          "project_team"
+        ]
+      }
+    },
+    {
+      "id": "OctopusDashboardWidget-Configuration",
+      "type": "ms.vss-dashboards-web.widget-configuration",
+      "targets": [
+        "ms.vss-dashboards-web.widget-configuration"
+      ],
+      "properties": {
+        "name": "Octopus Dashboard Widget Configuration",
+        "description": "Configures the Octopus Dashboard Widget",
+        "uri": "octopus-dashboard-widget-config.html"
       }
     }
   ]

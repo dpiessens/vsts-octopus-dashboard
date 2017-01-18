@@ -237,3 +237,9 @@ _Pvt_Extensions
 
 # FAKE - F# Make
 .fake/
+
+# VISX Extension output
+*.VISX
+
+# Distribution directory
+dist/
