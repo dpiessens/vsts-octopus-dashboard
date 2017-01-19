@@ -12,8 +12,8 @@ import Axios from 'axios';
 import moment = require("moment-timezone");
 import TaskAgentRestClient = require("TFS/DistributedTask/TaskAgentRestClient");
 import System_Contracts = require("VSS/Common/Contracts/System");
-import _ = require('underscore');
 import {Settings} from "./settings";
+import ko = require("knockout");
 
 export class OctopusDashboardWidget {
     constructor(public WidgetHelpers) { }
@@ -82,40 +82,27 @@ export class OctopusDashboardWidget {
     }
 
     private getDashboardWidget(data, customSettings: ISettings, url: string) {
-        console.log("Entering getDashboardWidget");
-        var environment = _.chain(data.Environments as IEnvironment[])
-            .select(function(item) { return item.Id === customSettings.environmentId})
-            .first()
-            .value();
+        
+        var environment = ko.utils.arrayFirst(data.Environments as IEnvironment[], item => item.Id === customSettings.environmentId);
+        var project = ko.utils.arrayFirst(data.Projects as IProject[], item => item.Id === customSettings.projectId);
 
-        var project = _.chain(data.Projects as IProject[])
-            .select(function(item) { return item.Id === customSettings.projectId})
-            .first()
-            .value();
-
-        var deployment = _.chain(data.Items as IDeployment[])
-            .select(function(entry) { return entry.EnvironmentId === customSettings.environmentId && entry.ProjectId === customSettings.projectId && entry.IsCurrent})
-            .first()
-            .value();
+        var deployment = ko.utils.arrayFirst(data.Items as IDeployment[], 
+            entry => entry.EnvironmentId === customSettings.environmentId && entry.ProjectId === customSettings.projectId && entry.IsCurrent);
 
         if (!environment || !project || !deployment) {
             console.log("Displaying default widget because project, environment or deployment does not exist.")
             return this.displayEmptyWidget();
         }
 
-        console.log("displaying widget calling");
         return this.display(project, environment, deployment, customSettings, url);
     }
 
     private showDashboard(widgetSettings) {
-        console.log("Showing octopus dashboard widget.");
         var customSettings = JSON.parse(widgetSettings.customSettings.data) as ISettings;
         
         if (!customSettings) {
             // Return the default screen here
-            console.log("Displaying default widget because settings do not exist.")
-            //return this.displayEmptyWidget();
-            customSettings = new Settings("7ddebfb7-e766-4095-b9ad-96c83102d43f", null, "Projects-1", "Environments-1");
+            return this.displayEmptyWidget();
         }
 
         try {
@@ -148,20 +135,18 @@ export class OctopusDashboardWidget {
                 });
         }
         catch (e) {
-            console.log(e);
+            console.error(e);
             return displayClass.displayEmptyWidget();
         }
     }
 
     public load(widgetSettings) {
         var result = this.showDashboard(widgetSettings);
-        console.log("Load Result: " + result);
         return result;
     }
 
     public reload(widgetSettings) {
         var result = this.showDashboard(widgetSettings);
-        console.log("Reload Result: " + result);
         return result;
     }
 }
