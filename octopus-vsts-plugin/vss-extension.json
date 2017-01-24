@@ -1,7 +1,7 @@
 {
   "manifestVersion": 1,
   "id": "octopus-dashboard-plugin",
-  "version": "0.1.123",
+  "version": "0.1.139",
   "name": "Octopus Dashboard Plugin",
   "type": "Microsoft.VisualStudio.Services",
   "scopes": [ "vso.profile", "vso.serviceendpoint_query" ],

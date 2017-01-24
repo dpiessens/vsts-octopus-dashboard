@@ -11,6 +11,7 @@
     },
     "files": [
         "src/octopus-dashboard/main.ts",
+        "src/octopus-dashboard/octopusWidgetViewModel.ts",
         "src/octopus-dashboard/octopusWidget.ts",
         "src/octopus-dashboard/settings.ts",
         "src/octopus-dashboard/octopusWidgetConfiguration.ts"

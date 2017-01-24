@@ -6,7 +6,7 @@
 </head>
 
 <body>
-    <div id="widget-setup" class="configure-widget widget-notification">
+    <div id="widget-setup" data-bind="visible: setupVisible" class="configure-widget widget-notification">
         <a class="action-required-link" href="#">
             <h2 class="title-container truncated-text-ellipsis" title="Octopus Dashboard">Octopus Dashboard</h2>
             <div class="content">
@@ -16,19 +16,19 @@
             </div>
         </a>
     </div>
-    <div id="widget-shell" class="widget">
-        <h2 id="title" class="title">Octopus Deploy Dashboard</h2>
+    <div id="widget-shell" data-bind="visible: !setupVisible()" class="widget">
+        <h2 id="title" data-bind="text: title" class="title">Octopus Deploy Dashboard</h2>
         <div class="content">
-            <a id="widget-link" href="#" target="_blank">
-                <div id="deploy-container" class="deployment-envs-container">
-                    <div id="deployment-1" class="deployment-env-container">
-                        <a id="deployment-link" href="#" target="_blank">
-                            <div id="environment-container" class="env-container failed">
-                                <div id="environment-name" class="env-name text-wrap"></div>
+            <a id="widget-link" href="#" target="_blank" data-bind="attr: { title: title }" >
+                <div id="deploy-container" class="deployment-envs-container" data-bind="foreach: deployments">
+                    <div class="deployment-env-container" data-bind="id: deployId">
+                        <a id="deployment-link" href="#" target="_blank" data-bind="attr: { href: deployLink, title: metadata }">
+                            <div id="environment-container" class="env-container" data-bind="css: environmentStatus" >
+                                <div id="environment-name" class="env-name text-wrap" data-bind="text: environmentName"></div>
                             </div>
-                            <div id="deploy-status" class="status-positioning bowtie-icon"></div>
-                            <div id="deploy-version" class="release-name truncated-text-ellipsis"></div>
-                            <div id="deploy-date" class="release-date"></div>
+                            <div id="deploy-status" class="status-positioning bowtie-icon" data-bind="css: deployStatus"></div>
+                            <div id="deploy-version" class="release-name truncated-text-ellipsis" data-bind="text: releaseNumber"></div>
+                            <div id="deploy-date" class="release-date" data-bind="text: deployDate"></div>
                         </a>
                     </div>
                 </div>
@@ -37,7 +37,6 @@
     </div>
 
     <script src="lib/VSS.SDK.min.js"></script>
-    <script src="https://code.jquery.com/jquery-2.2.3.min.js"></script>
     <script src="moment.js"></script>
     <script src="moment-timezone.js"></script>
     <script src="axios.js"></script>

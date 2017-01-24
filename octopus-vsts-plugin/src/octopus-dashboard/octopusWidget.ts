@@ -2,6 +2,7 @@
 
 /// <reference path="isettings.d.ts" />
 /// <reference path="settings.ts" />
+/// <reference path="octopusWidgetViewModel.ts" />
 /// <reference path="octopus/index.d.ts" />
 
 import Work_Client = require("TFS/Work/RestClient");
@@ -13,93 +14,51 @@ import moment = require("moment-timezone");
 import TaskAgentRestClient = require("TFS/DistributedTask/TaskAgentRestClient");
 import System_Contracts = require("VSS/Common/Contracts/System");
 import {Settings} from "./settings";
+import {OctopusWidgetViewModel} from "./octopusWidgetViewModel";
 import ko = require("knockout");
 
 export class OctopusDashboardWidget {
     constructor(public WidgetHelpers) { }
 
     private displayEmptyWidget() {
-        var $widgetShell = $('#widget-shell');
-        var $widgetSetup = $('#widget-setup');
-        
-        $widgetSetup.show();
-        $widgetShell.hide();
+
+        var viewModel = new OctopusWidgetViewModel(true);
+        ko.applyBindings(viewModel);
 
         return this.WidgetHelpers.WidgetStatusHelper.Success();
     }
 
-    private display(project: IProject, environment: IEnvironment, deployment: IDeployment, 
-        customSettings: ISettings, octopusUrl: string) {
+    private display(project: IProject, environments: IEnvironment[], deployments: IDeployment[], 
+        customSettings: ISettings, octopusUrl: string, columnCount: number) {
         
-        console.log("displaying widget");
-        // Toggle visibility
-        $('#widget-shell').show();
-        $('#widget-setup').hide();
-
-        // Set the Title
-        var $title = $("#title");
         var name = (!customSettings.name ? project.Name : customSettings.name)
-        $title.text(name);
 
-        // Set the Link for the widget
-        var $widgetLink = $("#widget-link");
-        $widgetLink.attr({ "href" : octopusUrl, "title" : name });
+        var viewModel = new OctopusWidgetViewModel(false, name, octopusUrl, environments, deployments, customSettings.environmentId, columnCount);
+        ko.applyBindings(viewModel);
        
-        // Calculate dates
-        var deployDate = moment.tz(deployment.Created, "America/Chicago");
-
-        // Set visuals
-        $('#environment-name').text(environment.Name);
-
-        $('#deploy-date').text(deployDate.from(moment()));
-        $('#deploy-version').text(deployment.ReleaseVersion);
-
-        var deployLink = octopusUrl.concat("app#/tasks/", deployment.TaskId);
-        var metadata = "Version:  " + deployment.ReleaseVersion + 
-                       "\nDuration: " + deployment.Duration + 
-                       "\nStatus:   " + deployment.State + 
-                       "\nDate:     " + deployDate.format("MMMM dd, yyyy HH:mm A");
-
-        $("#deployment-link").attr({ "href" : deployLink, "title" : metadata });
-
-        var $deployStatus = $('#deploy-status');
-        var $environmentContainer = $('#environment-container');
-        
-        if (deployment.State === "Success") {
-            $deployStatus.removeClass("bowtie-status-failure");
-            $deployStatus.addClass("bowtie-status-success");
-            $environmentContainer.removeClass("failure");
-            $environmentContainer.addClass("success");
-        }
-        else {
-            $deployStatus.removeClass("bowtie-status-success");
-            $deployStatus.addClass("bowtie-status-failure");
-            $environmentContainer.removeClass("success");
-            $environmentContainer.addClass("failure");
-        }
-
         return this.WidgetHelpers.WidgetStatusHelper.Success();
     }
 
-    private getDashboardWidget(data, customSettings: ISettings, url: string) {
+    private getDashboardWidget(data, customSettings: ISettings, url: string, columnCount: number) {
         
-        var environment = ko.utils.arrayFirst(data.Environments as IEnvironment[], item => item.Id === customSettings.environmentId);
+        var environments = data.Environments as IEnvironment[];
         var project = ko.utils.arrayFirst(data.Projects as IProject[], item => item.Id === customSettings.projectId);
 
-        var deployment = ko.utils.arrayFirst(data.Items as IDeployment[], 
-            entry => entry.EnvironmentId === customSettings.environmentId && entry.ProjectId === customSettings.projectId && entry.IsCurrent);
+        var deployments = ko.utils.arrayFilter(data.Items as IDeployment[], 
+            entry => entry.ProjectId === customSettings.projectId && entry.IsCurrent);
 
-        if (!environment || !project || !deployment) {
-            console.log("Displaying default widget because project, environment or deployment does not exist.")
+        if (!environments || !project) {
+            console.debug("Displaying default widget because project, environment or deployment does not exist.")
             return this.displayEmptyWidget();
         }
 
-        return this.display(project, environment, deployment, customSettings, url);
+        return this.display(project, environments, deployments, customSettings, url, columnCount);
     }
 
     private showDashboard(widgetSettings) {
         var customSettings = JSON.parse(widgetSettings.customSettings.data) as ISettings;
-        
+        var columnSize = widgetSettings.size.columnSpan as number;
+
         if (!customSettings) {
             // Return the default screen here
             return this.displayEmptyWidget();
@@ -126,10 +85,10 @@ export class OctopusDashboardWidget {
 
                     return octopusApi.get("/api/dashboard")
                         .then(function (response) {
-                            return displayClass.getDashboardWidget(response.data, customSettings, endpoint.url);
+                            return displayClass.getDashboardWidget(response.data, customSettings, endpoint.url, columnSize);
                         })
                         .catch(function (error) {
-                            console.log(error);
+                            console.error(error);
                             return displayClass.displayEmptyWidget();
                         });
                 });
