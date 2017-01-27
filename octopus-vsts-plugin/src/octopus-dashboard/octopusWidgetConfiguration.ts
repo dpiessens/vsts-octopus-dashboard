@@ -4,15 +4,14 @@
 /// <reference path="isettings.d.ts" />
 /// <reference path="settings.ts" />
 /// <reference path="octopus/index.d.ts" />
+/// <reference path="apiCalls.ts" />
 
-import WebApi_Constants = require("VSS/WebApi/Constants");
-import TFS_Core_Contracts = require("TFS/Core/Contracts");
-import Service = require("VSS/Service");
 import Q = require("q");
 import Controls = require("VSS/Controls");
 import Combos = require("VSS/Controls/Combos");
 import TaskAgentRestClient = require("TFS/DistributedTask/TaskAgentRestClient");
 import DistributedTask_Contracts = require("TFS/DistributedTask/Contracts");
+import { ApiCalls } from "./apiCalls";
 import ko = require("knockout");
 
 export class Configuration {
@@ -25,6 +24,9 @@ export class Configuration {
     public load(widgetSettings, widgetConfigurationContext) {
         var _that = this;
         this.widgetConfigurationContext = widgetConfigurationContext;
+
+        var webContext = VSS.getWebContext();
+        var projectId = webContext.project.id;
 
         this.getServiceEndpoints()
             .then(serviceEndpoints => {
@@ -39,7 +41,7 @@ export class Configuration {
                         });
                 }
 
-                this.model = new OctopusDashboardConfigViewModel(serviceEndpoints, settings);
+                this.model = new OctopusDashboardConfigViewModel(serviceEndpoints, settings, projectId);
                 ko.applyBindings(this.model);
                 this.model.settingsObservable.subscribe(s => this.notifyModelChanged());
             });
@@ -66,8 +68,7 @@ export class Configuration {
         var endpointClient = TaskAgentRestClient.getClient();
         var displayClass = this;
 
-        endpointClient.getServiceEndpoints(webContext.project.id, "OctopusEndpoint").then(endpoints => {
-            console.log("Endpoints: " + JSON.stringify(endpoints));
+        endpointClient.getServiceEndpoints(webContext.project.id, "OctopusDashboardEndpoint").then(endpoints => {
             if (endpoints.length > 0) {
                 deferred.resolve(endpoints);
             }
@@ -116,12 +117,14 @@ export class OctopusDashboardConfigViewModel {
 
     private environments: KnockoutObservable<IEnvironment[]>;
     private filteredEnvironments: KnockoutObservable<string[]>;
+    private projectId: string;
 
     constructor(endpoints: DistributedTask_Contracts.ServiceEndpoint[],
-        settings: ISettings) {
+        settings: ISettings, projectId: string) {
 
         var endpoint = this.getById(endpoints, settings.endpointId);
-        
+        this.projectId = projectId;
+
         this.nameObservable = ko.observable(settings.name);
         this.projectsObservable = ko.observable<IProject[]>();
         this.endpointsObservable = ko.observableArray(endpoints);
@@ -140,26 +143,36 @@ export class OctopusDashboardConfigViewModel {
             var name = this.nameObservable();
 
             return ko.toJSON((<ISettings>
-                        {
-                            name: (!name || name === "") ? null : name,
-                            endpointId: endpoint != null ? endpoint.id : null,
-                            projectId: project != null ? project.Id : null,
-                            environmentId: env != null ? env.Id : null
-                        }));
+                {
+                    name: (!name || name === "") ? null : name,
+                    endpointId: endpoint != null ? endpoint.id : null,
+                    projectId: project != null ? project.Id : null,
+                    environmentId: env != null ? env.Id : null
+                }));
         }, self);
 
         this.environmentsObservable = ko.computed(function () {
             console.log("Recomputing environments, list: " + JSON.stringify(this.environments()));
-            var filter : string[] = this.filteredEnvironments() as string[];
+
+            var noneOption = [(<IEnvironment>{
+                Id: null,
+                Name: "All Environments"
+            })];
+
+            var filter: string[] = this.filteredEnvironments() as string[];
+
             if (!filter || filter.length === 0) {
-                return this.environments();
+                var envList = this.environments() as IEnvironment[];
             } else {
-                return ko.utils.arrayFilter<IEnvironment>(this.environments(), function (item) {
+                var envList = ko.utils.arrayFilter<IEnvironment>(this.environments(), function (item) {
                     return ko.utils.arrayFirst<string>(filter, f => {
                         return f === item.Id;
                     }) != null;
                 });
             }
+
+            return noneOption.concat(envList);
+
         }, self);
 
         // Initialize data
@@ -167,11 +180,11 @@ export class OctopusDashboardConfigViewModel {
 
         this.selectedProject.subscribe(project => this.updateProject(project, self));
         this.selectedEnvironment.subscribe(env => this.updateEnvironment(env, self));
-        this.selectedEndpoint.subscribe(endpoint => { 
+        this.selectedEndpoint.subscribe(endpoint => {
             this.getOctopusData(endpoint).then(data => {
                 self.projectsObservable(data.Projects as IProject[]);
                 self.environments(data.Environments as IEnvironment[]);
-            }); 
+            });
         });
     }
 
@@ -184,7 +197,7 @@ export class OctopusDashboardConfigViewModel {
             return item.id === id;
         });
     }
-    
+
     private getEnvironmentById(items: IEnvironment[], id: string) {
         if (!id || id === null || id === "") {
             return null;
@@ -205,26 +218,30 @@ export class OctopusDashboardConfigViewModel {
         });
     }
 
-    private getOctopusData(endpoint: DistributedTask_Contracts.ServiceEndpoint) : IPromise<any> {
+    private getOctopusData(endpoint: DistributedTask_Contracts.ServiceEndpoint): IPromise<any> {
         var deferred = Q.defer<any>();
 
-        var dashboardUrl = endpoint.url + "/api/dashboard"
-        $.ajax({
-            type: "GET",
-            url: dashboardUrl,
-            headers: { 'X-Octopus-ApiKey': "API-CBR9BO2ELOJKJDBWANHKEFCNANU" },
-            dataType: 'json',
-        })
-            .done(data => deferred.resolve(data))
-            .fail(() => deferred.reject(null));
+        var projectId = this.projectId;
+        var endpointId = endpoint.id;
+        ApiCalls.getEnvironments(projectId, endpointId)
+            .then(environments => {
+                return ApiCalls.getProjects(projectId, endpointId)
+                    .then(projects => {
+                        var data = {
+                            Projects: projects,
+                            Environments: environments
+                        };
+                        deferred.resolve(data);
+                    });
+            });
 
         return deferred.promise;
     }
 
-    private initializeData(settings : ISettings, endpoint: DistributedTask_Contracts.ServiceEndpoint) {
+    private initializeData(settings: ISettings, endpoint: DistributedTask_Contracts.ServiceEndpoint) {
         var deferred = Q.defer();
 
-        if  (!endpoint) {
+        if (!endpoint) {
             deferred.resolve();
             return deferred.promise;
         }
@@ -248,7 +265,7 @@ export class OctopusDashboardConfigViewModel {
         console.log("Selected Project: " + JSON.stringify(project));
         if (project != null) {
             viewModel.filteredEnvironments(project.EnvironmentIds);
-            
+
         }
         else {
             viewModel.filteredEnvironments(null);

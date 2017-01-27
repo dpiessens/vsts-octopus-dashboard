@@ -85,12 +85,33 @@ span {
     width: 100%;
 }
 
+.status-icon {
+    color: #ffffff;
+    display: inline-block;
+}
+
 .deployment-envs-container .deployment-env-container .failure {
     background-color: #ac0000;
 }
 
 .deployment-envs-container .deployment-env-container .success {
     background-color: #393;
+}
+
+.deployment-envs-container .deployment-env-container .none {
+    background-color: #999999;
+}
+
+.deployment-envs-container .deployment-env-container .stop {
+    background-color: #000000;
+}
+
+.deployment-envs-container .deployment-env-container .run {
+    background-color: rgb(0, 156, 204);
+}
+
+.deployment-envs-container .deployment-env-container .waiting {
+    background-color: #fbbc3d;
 }
 
 .deployment-envs-container .deployment-env-container .env-container .env-name {
@@ -103,16 +124,25 @@ span {
 }
 
 .deployment-envs-container .deployment-env-container .status-positioning {
-    margin-top: 15px;
+    margin-top: 20px;
     margin-left: 6px;
     margin-bottom: 16px;
     float: left;
+    display: block;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.deployment-envs-container .deployment-env-container .status-positioning.none {
+    display: none;
 }
 
 .deployment-envs-container .deployment-env-container .release-name {
-    margin-left: 4px;
+    margin-left: 6px;
     margin-top: 15px;
-    width: 80%;
+    width: 70%;
     display: block;
     color: black;
     float: left;
@@ -123,8 +153,8 @@ span {
     display: block;
     float: left;
     color: rgba(37,51,38,.64);
-    width: 80%;
-    margin-top: 0;
-    margin-left: 4px;
+    width: 70%;
+    margin-top: 1px;
+    margin-left: 6px;
     font-size: 8pt;
 }

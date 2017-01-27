@@ -2,6 +2,7 @@
 <html>
 
 <head>
+    <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
     <link href="css/main.css" rel="stylesheet" />
 </head>
 
@@ -26,7 +27,9 @@
                             <div id="environment-container" class="env-container" data-bind="css: environmentStatus" >
                                 <div id="environment-name" class="env-name text-wrap" data-bind="text: environmentName"></div>
                             </div>
-                            <div id="deploy-status" class="status-positioning bowtie-icon" data-bind="css: deployStatus"></div>
+                            <div id="deploy-status" class="status-positioning" data-bind="css: environmentStatus">
+                                <i id="deploy-status-icon" class="status-icon fa" data-bind="css: deployStatus"></i>
+                            </div>
                             <div id="deploy-version" class="release-name truncated-text-ellipsis" data-bind="text: releaseNumber"></div>
                             <div id="deploy-date" class="release-date" data-bind="text: deployDate"></div>
                         </a>

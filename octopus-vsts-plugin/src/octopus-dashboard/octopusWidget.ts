@@ -4,55 +4,46 @@
 /// <reference path="settings.ts" />
 /// <reference path="octopusWidgetViewModel.ts" />
 /// <reference path="octopus/index.d.ts" />
+/// <reference path="apiCalls.ts" />
 
-import Work_Client = require("TFS/Work/RestClient");
-import WebApi_Constants = require("VSS/WebApi/Constants");
-import TFS_Core_Contracts = require("TFS/Core/Contracts");
-import Service = require("VSS/Service");
-import Axios from 'axios';
 import moment = require("moment-timezone");
 import TaskAgentRestClient = require("TFS/DistributedTask/TaskAgentRestClient");
-import System_Contracts = require("VSS/Common/Contracts/System");
-import {Settings} from "./settings";
-import {OctopusWidgetViewModel} from "./octopusWidgetViewModel";
+import { Settings } from "./settings";
+import { OctopusWidgetViewModel } from "./octopusWidgetViewModel";
+import { ApiCalls } from "./apiCalls";
 import ko = require("knockout");
 
 export class OctopusDashboardWidget {
-    constructor(public WidgetHelpers) { }
+
+    public ViewModel: OctopusWidgetViewModel
+
+    constructor(public WidgetHelpers) {
+        this.ViewModel = new OctopusWidgetViewModel();
+        ko.applyBindings(this.ViewModel);
+    }
 
     private displayEmptyWidget() {
 
-        var viewModel = new OctopusWidgetViewModel(true);
-        ko.applyBindings(viewModel);
-
+        this.ViewModel.isSetup();
         return this.WidgetHelpers.WidgetStatusHelper.Success();
     }
 
-    private display(project: IProject, environments: IEnvironment[], deployments: IDeployment[], 
-        customSettings: ISettings, octopusUrl: string, columnCount: number) {
-        
-        var name = (!customSettings.name ? project.Name : customSettings.name)
+    private getDashboardWidget(deployments: IDeployment[], environments: IEnvironment[], customSettings: ISettings, url: string, columnCount: number) {
 
-        var viewModel = new OctopusWidgetViewModel(false, name, octopusUrl, environments, deployments, customSettings.environmentId, columnCount);
-        ko.applyBindings(viewModel);
-       
-        return this.WidgetHelpers.WidgetStatusHelper.Success();
-    }
+        var projectDeploys = ko.utils.arrayFilter(deployments, d => d.ProjectId === customSettings.projectId);
 
-    private getDashboardWidget(data, customSettings: ISettings, url: string, columnCount: number) {
-        
-        var environments = data.Environments as IEnvironment[];
-        var project = ko.utils.arrayFirst(data.Projects as IProject[], item => item.Id === customSettings.projectId);
-
-        var deployments = ko.utils.arrayFilter(data.Items as IDeployment[], 
-            entry => entry.ProjectId === customSettings.projectId && entry.IsCurrent);
-
-        if (!environments || !project) {
-            console.debug("Displaying default widget because project, environment or deployment does not exist.")
+        if (!environments) {
+            console.debug("Displaying default widget because project or environments do not exist.")
             return this.displayEmptyWidget();
         }
 
-        return this.display(project, environments, deployments, customSettings, url, columnCount);
+        var name = (!customSettings.name ? "Octopus Deploy" : customSettings.name);
+        var envId = customSettings.environmentId;
+
+        this.ViewModel.setMetadata(name, url);
+        this.ViewModel.setModel(environments, projectDeploys, envId, columnCount);
+
+        return this.WidgetHelpers.WidgetStatusHelper.Success();
     }
 
     private showDashboard(widgetSettings) {
@@ -68,7 +59,6 @@ export class OctopusDashboardWidget {
             var webContext = VSS.getWebContext();
             var endpointClient = TaskAgentRestClient.getClient();
             var displayClass = this;
-            
 
             return endpointClient.getServiceEndpointDetails(webContext.project.id, customSettings.endpointId)
                 .then(endpoint => {
@@ -76,20 +66,14 @@ export class OctopusDashboardWidget {
                         return displayClass.displayEmptyWidget();
                     }
 
-                    console.log("Endpoint data: " + JSON.stringify(endpoint));
-
-                    var octopusApi = Axios.create({
-                        baseURL: endpoint.url,
-                        headers: {'X-Octopus-ApiKey': "API-CBR9BO2ELOJKJDBWANHKEFCNANU"}
-                    });
-
-                    return octopusApi.get("/api/dashboard")
-                        .then(function (response) {
-                            return displayClass.getDashboardWidget(response.data, customSettings, endpoint.url, columnSize);
-                        })
-                        .catch(function (error) {
-                            console.error(error);
-                            return displayClass.displayEmptyWidget();
+                    var projectId = webContext.project.id;
+                    var endpointId = customSettings.endpointId;
+                    return ApiCalls.getEnvironments(projectId, endpointId)
+                        .then(environments => {
+                            return ApiCalls.getDeployments(projectId, endpointId)
+                                .then(deployments => {
+                                    return displayClass.getDashboardWidget(deployments, environments, customSettings, endpoint.url, columnSize);
+                                });
                         });
                 });
         }
@@ -100,11 +84,13 @@ export class OctopusDashboardWidget {
     }
 
     public load(widgetSettings) {
+        console.debug("Calling load");
         var result = this.showDashboard(widgetSettings);
         return result;
     }
 
     public reload(widgetSettings) {
+        console.debug("Calling reload");
         var result = this.showDashboard(widgetSettings);
         return result;
     }
